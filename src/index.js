@@ -11,43 +11,25 @@ const ref = {
 };
 
 document.addEventListener("DOMContentLoaded", () => { 
-
-    
-ref.loader.style.display = 'none';
-ref.error.style.display = 'none';
+    ref.error.style.display = 'none';
     function listSelectOptionsBreed() {
-        
+    ref.loader.style.display = 'block';
         fetchBreeds()
-        .then(breeds => {
-            breeds.forEach((breed) => {
-                const option = document.createElement("option");
-                option.value = breed.id;
-                option.textContent = breed.name;
-                ref.select.appendChild(option)
-                
-            });
-            new SlimSelect({
-                select: document.querySelector(".breed-select")
-            });
+            .then(breeds => {
+                addNewOptionsInSelect(breeds);
         })
             .catch((err) => {
                 console.log(err);
                 Report.failure('Oops! Something went wrong!', 'Try reloading the page!','Okay',);
-            });
+            })
+        .finally(() => ref.loader.style.display = 'none')
     };
 
     function updateInfoOfCat(selectedBreedId) {
-        ref.catInfo.style.display = 'none';
         ref.loader.style.display = 'block';
-        
         fetchCatByBreed(selectedBreedId)
-        .then(dataCat => {
-            const cat = dataCat[0];
-            ref.catInfo.innerHTML = `
-            <img src="${cat.url}" alt="cat">
-            <h2>${cat.breeds[0].name}</h2>
-            <p>${cat.breeds[0].description}</p>
-            <p><strong>Temperament:</strong> ${cat.breeds[0].temperament}</p>`;
+            .then(dataCat => {
+            createMarkupOfBreeds(dataCat)
             ref.catInfo.style.display = 'block';
         })
         .catch((err) => { console.log(err) })
@@ -64,8 +46,24 @@ ref.error.style.display = 'none';
 
 });
 
+function addNewOptionsInSelect(CatBreeds) {
+    const optionArr = CatBreeds.map((breed) => {
+            const option = document.createElement("option");
+            option.value = breed.id;
+            option.textContent = breed.name;
+            return option
+            })
+            ref.select.append(...optionArr)
+            new SlimSelect({
+                select: ref.select,
+            }); 
+}
 
-
-
-
-
+function createMarkupOfBreeds(cats) {
+    const cat = cats[0];
+            ref.catInfo.innerHTML = `
+            <img src="${cat.url}" alt="cat">
+            <h2>${cat.breeds[0].name}</h2>
+            <p>${cat.breeds[0].description}</p>
+            <p><strong>Temperament:</strong> ${cat.breeds[0].temperament}</p>`;
+}
